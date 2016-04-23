@@ -77,4 +77,4 @@ clean <- aggregate(. ~ activity + subject, data = sub.merged, FUN = mean)
 cleaned <- cbind(clean[,c("subject","activity")], clean[,3:68])
 
 #output to a csv file
-write.table(cleaned, "tidied_data.csv", row.names=FALSE)
+write.table(cleaned, "tidied_data.csv", row.names=FALSE, sep=",")
