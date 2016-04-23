@@ -76,5 +76,5 @@ clean <- aggregate(. ~ activity + subject, data = sub.merged, FUN = mean)
 # switch placement of subject and activity
 cleaned <- cbind(clean[,c("subject","activity")], clean[,3:68])
 
-#output to text file
-write.table(cleaned, "tidied_data.txt", row.names=FALSE)
+#output to a csv file
+write.table(cleaned, "tidied_data.csv", row.names=FALSE)
