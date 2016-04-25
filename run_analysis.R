@@ -1,5 +1,5 @@
 
-#Remove ALL objects
+#Remove all previously built objects
 rm(list=ls()) 
 
 

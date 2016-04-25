@@ -41,5 +41,5 @@ For each subject adnd activity combination in the merged, labled dataset the mea
 
 ### Export the tidied data set
 
-Finally, create the tidy dataset where activities and features are labeled and features are averaged by subject and activity.  This dataset has 10,299 observations and 81 variables arrange as subject (1...30), activity (walking, walking upstairs, walking downstairs, sitting, standing and laying) and a 79-feature vector.  
+Finally, create the tidy dataset where activities and features are labeled and features are averaged by subject and activity.  This dataset has 10,299 observations and 81 variables arrange as subject (1...30), activity (walking, walking upstairs, walking downstairs, sitting, standing and laying) and a 79-feature vector.  The tidied data set can be found at [GitHub](https://github.com/wer61537/Tidying_Data/blob/master/tidied_data.csv).  
 
