@@ -1,0 +1,154 @@
+---
+title: "Readme"
+author: "Bill Rowe"
+date: "April 24, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Tidying_Data
+Getting and Cleaning Assignment
+
+### Background on the UCI dataset
+
+The [*Human Activity Recognition Using Smartphones Data Set*] data for this project is from the [UCI Machine Learning](http://archive.ics.uci.edu/ml/datasets/Human+Activity+Recognition+Using+Smartphones) repository.  The data is from Davide Anguita, Alessandro Ghio, Luca Oneto, Xavier Parra and Jorge L. Reyes-Ortiz,  *Human Activity Recognition on Smartphones using a Multiclass Hardware-Friendly Support Vector Machine* presented at the International Workshop of Ambient Assisted Living (IWAAL 2012).
+
+The dataset set has 10,299 observations with 563 variables. Variables are created from gravity and accelerometer readings for body and gravity at three orientations (x, y, z) for each activity.  Statistics for each combination are calculated.  The statistics were mean(), std(), mad() or median absolute deviation, max(), min(), sma() or signal magnitude area, energy(), iqr() or Interquartile range, entropy(), arCoeff() or autoregression coefficients with Burg order equal to 4, correlation(), maxInds() or the index of the frequency component with largest magnitude, meanFreq() or Weighted average of the frequency components used to obtain a mean frequency, skewness(), kurtosis(), bandsEnergy() or energy of a frequency interval within the 64 bins of the FFT of each window and angle() or angle between some vectors.  Each variable was normalized (bound to [-1, 1]).
+
+The original data was partitioned, randomly, to create two datasets: training and test.  The training set had 70% of the data and the test 30%.  
+
+The data as downloaded are in multiples files.  The test data are in three files (X_test.txt, y_test.txt) and as are the training data (X_train.txt, y_train.txt).  Subject data are in two files (subject_test.txt and subject_train.txt).  Finally, features (variable names) are in features.txt and activities ("walking"", etc.) in activity_labels.txt.  
+
+### Getting and Cleaning Data the Activity Dataset
+
+The R script, [`run_analysis.R`](https://github.com/wer61537/Tidying_Data/blob/master/run_analysis.R), does the following:
+
+1. Download and unzip the dataset from the UCI website if it does not already exist in the working directory.
+2. Load the test and train files into test and train datasets
+3. Merge the test and train datasets into one dataset.
+4. Add the features and activity_labels to the merged dataset.
+5. Extract data for the mean and standard deviation.
+6. Clean up labels (spell out names, inconsistent brackets, parentheses, dashes)
+7. Aggregate by subject and activity and calculate mean and standard deviation.
+8. Output tidied file as csv.
+
+
+#### 1. Download and unzip the dataset from the UCI website if it does not already exist in the working directory.
+
+```r
+#Remove all previously built objects
+rm(list=ls()) 
+
+
+#====================================#
+# Load the Files
+# Features (column headings) are in “features.txt”
+# Activity labels are in “activity_labels.txt”
+# Activity is split into “Y_train.txt” and “Y_test.txt”
+# Subject is split into “subject_train.txt” and subject_test.txt"
+#====================================#:
+
+# Download, extract dataset as need
+if(!file.exists("UCI HAR Dataset")) {
+  url <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
+  download.file(url,destfile = "Dataset.zip")
+  unzip("Dataset.zip")
+}
+```
+
+#### 2. Load the test and train files into test and train datasets
+```r
+#test data
+#extract each and then combine into 1 test dataframe
+subject_test <- read.table("UCI HAR Dataset/test/subject_test.txt")
+X_test <- read.table("UCI HAR Dataset/test/X_test.txt")
+y_test <- read.table("UCI HAR Dataset/test/y_test.txt")
+test <- cbind(subject_test, y_test, X_test)
+
+#train data
+#extract each and then combine into 1 train dataframe
+subject_train <- read.table("UCI HAR Dataset/train/subject_train.txt")
+X_train <- read.table("UCI HAR Dataset/train/X_train.txt")
+y_train <- read.table("UCI HAR Dataset/train/y_train.txt")
+train <- cbind(subject_train, y_train, X_train)
+```
+
+#### 3. Merge the test and train datasets into one dataset.
+```r
+#Combine (merge) the train and test dataframes
+merged <- rbind(test,train)
+#names(merged) 
+```
+
+#### 4. Add the features and activity_labels to the merged dataset.
+```r
+#get the names of the features
+features <- read.table("UCI HAR Dataset/features.txt",stringsAsFactors = FALSE)
+names(merged) 
+
+
+#Rename the columns as subject, activity and features
+names(merged) <- c("subject","activity", features$V2)
+
+#get the labels for the activities
+activity_labels <- read.table("UCI HAR Dataset/activity_labels.txt", stringsAsFactors = FALSE)
+
+#apply activity labels
+merged$activity <- factor(merged$activity,levels = activity_labels$V1,labels = activity_labels$V2)
+
+#inspect the data
+str(merged)
+```
+
+#### 5. Extract data for the mean and standard deviation.
+
+```r
+#Pull out the mean and stnd dev
+sub.merged <- merged[,grep("mean\\(\\)|std\\(\\)|subject|activity", names(merged))]
+```
+
+#### 6. Clean up labels (spell out names, inconsistent brackets, parentheses, dashes)
+
+```r
+#Tidy names using gsub
+#http://www.endmemo.com/program/R/gsub.php
+#replace prepended t with Time_, f with Freq_, BodyBody with Body
+names(sub.merged) <- gsub("^t", "Time_", names(sub.merged))
+names(sub.merged) <- gsub("^f", "Freq_", names(sub.merged))
+names(sub.merged) <- gsub("BodyBody", "Body", names(sub.merged))
+#clean up mean in labels
+names(sub.merged) <- gsub("-mean\\(\\)-", "_Mean_", names(sub.merged))
+names(sub.merged) <- gsub("-mean\\(\\)", "_Mean", names(sub.merged))
+#clean up std dev in labels
+names(sub.merged) <- gsub("-std\\(\\)-", "_Std_", names(sub.merged))
+names(sub.merged) <- gsub("-std\\(\\)", "_Std", names(sub.merged))
+#clean up other fields
+names(sub.merged) <- gsub("[(][)]", "", names(sub.merged))
+names(sub.merged) <- gsub("Acc", "Accelerometer",names(sub.merged))
+names(sub.merged) <- gsub("Gyro", "Gyroscope", names(sub.merged))
+names(sub.merged) <- gsub("Mag", "Magnitude", names(sub.merged))
+names(sub.merged) <- gsub("-", "_", names(sub.merged))
+```
+
+### 7. Aggregate by subject and activity and calculate mean and standard deviation.
+```r
+#calculate mean for each activity, subject combination
+clean <- aggregate(. ~ activity + subject, data = sub.merged, FUN = mean)
+names(clean)
+
+# switch placement of subject and activity
+cleaned <- cbind(clean[,c("subject","activity")], clean[,3:68])
+```
+
+### 8. Output tidied file as csv.
+```r
+#output to a csv file
+write.table(cleaned, "tidied_data.csv", row.names=FALSE, sep=",")
+
+#is the data tidy?
+#check names
+names(cleaned)
+```
