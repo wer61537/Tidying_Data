@@ -2,12 +2,6 @@
 #Remove ALL objects
 rm(list=ls()) 
 
-# Download, extract dataset as need
-if(!file.exists("UCI HAR Dataset")) {
-  url <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
-  download.file(url,destfile = "Dataset.zip", method = "curl")
-  unzip("Dataset.zip")
-}
 
 #====================================#
 # Load the Files
@@ -16,6 +10,13 @@ if(!file.exists("UCI HAR Dataset")) {
 # Activity is split into “Y_train.txt” and “Y_test.txt”
 # Subject is split into “subject_train.txt” and subject_test.txt"
 #====================================#:
+
+# Download, extract dataset as need
+if(!file.exists("UCI HAR Dataset")) {
+  url <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
+  download.file(url,destfile = "Dataset.zip")
+  unzip("Dataset.zip")
+}
 
 #test data
 #extract each and then combine into 1 test dataframe
@@ -33,9 +34,12 @@ train <- cbind(subject_train, y_train, X_train)
 
 #Combine (merge) the train and test dataframes
 merged <- rbind(test,train)
+#names(merged) 
 
 #get the names of the features
 features <- read.table("UCI HAR Dataset/features.txt",stringsAsFactors = FALSE)
+names(merged) 
+
 
 #Rename the columns as subject, activity and features
 names(merged) <- c("subject","activity", features$V2)
@@ -45,6 +49,9 @@ activity_labels <- read.table("UCI HAR Dataset/activity_labels.txt", stringsAsFa
 
 #apply activity labels
 merged$activity <- factor(merged$activity,levels = activity_labels$V1,labels = activity_labels$V2)
+
+#inspect the data
+str(merged)
 
 #Pull out the mean and stnd dev
 sub.merged <- merged[,grep("mean\\(\\)|std\\(\\)|subject|activity", names(merged))]
@@ -71,10 +78,14 @@ names(sub.merged) <- gsub("-", "_", names(sub.merged))
 
 #calculate mean for each activity, subject combination
 clean <- aggregate(. ~ activity + subject, data = sub.merged, FUN = mean)
-
+names(clean)
 
 # switch placement of subject and activity
 cleaned <- cbind(clean[,c("subject","activity")], clean[,3:68])
 
 #output to a csv file
 write.table(cleaned, "tidied_data.csv", row.names=FALSE, sep=",")
+
+#is the data tidy?
+#check names
+names(cleaned)
